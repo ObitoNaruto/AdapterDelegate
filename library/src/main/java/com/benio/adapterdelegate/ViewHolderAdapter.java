@@ -4,39 +4,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-import com.benio.adapterdelegate.interf.DataProvider;
-import com.benio.adapterdelegate.interf.Delegate;
-import com.benio.adapterdelegate.interf.DelegateManager;
-
 /**
- * A {@link BaseAdapter} subclass using ViewHolder and DelegateManager.<p>
- * Created by benio on 2016/3/3.
+ * An {@link BaseAdapter} using View Holder Pattern
+ * Created by zhangzhibin on 2016/8/9.
+ *
+ * @param <VH> The type of the ViewHolder
  */
-public abstract class AbsDelegateBaseAdapter<VH extends ViewHolder, D extends Delegate<VH>>
-        extends BaseAdapter implements DataProvider {
-    private final DelegateManager<VH, D> mDelegateManager;
-
-    public AbsDelegateBaseAdapter() {
-        this(new AdapterDelegateManager<VH, D>());
-    }
-
-    protected AbsDelegateBaseAdapter(DelegateManager<VH, D> manager) {
-        this.mDelegateManager = manager;
-        if (null == mDelegateManager) {
-            throw new NullPointerException("Delegate manager is null");
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <T extends DelegateManager<VH, D>> T getDelegateManager() {
-        return (T) mDelegateManager;
-    }
-
-    @Override
-    public final int getItemCount() {
-        // same as getCount()
-        return getCount();
-    }
+public abstract class ViewHolderAdapter<VH extends ViewHolder> extends BaseAdapter {
 
     @SuppressWarnings("unchecked")
     @Override
@@ -46,12 +20,13 @@ public abstract class AbsDelegateBaseAdapter<VH extends ViewHolder, D extends De
             holder = createViewHolder(parent, getItemViewType(position));
             // convert view set tag
             convertView = holder.itemView;
-            convertView.setTag(holder);
+            convertView.setTag(R.id.tag, holder);
         } else {
-            holder = (VH) convertView.getTag();
+            holder = (VH) convertView.getTag(R.id.tag);
         }
+
         bindViewHolder(holder, position);
-        return holder.itemView;
+        return convertView;
     }
 
     /**
@@ -83,7 +58,7 @@ public abstract class AbsDelegateBaseAdapter<VH extends ViewHolder, D extends De
      * This new ViewHolder should be constructed with a new View that can represent the items
      * of the given type. You can either create a new View manually or inflate it from an XML
      * layout file.
-     * <p>
+     * <p/>
      * The new ViewHolder will be used to display items of the adapter using
      * {@link #onBindViewHolder(ViewHolder, int)}. Since it will be re-used to display
      * different items in the data set, it is a good idea to cache references to sub views of
@@ -93,9 +68,7 @@ public abstract class AbsDelegateBaseAdapter<VH extends ViewHolder, D extends De
      *               an adapter position.
      * @return A new ViewHolder that holds a View of the given view type.
      */
-    public VH onCreateViewHolder(ViewGroup parent, int viewType) {
-        return mDelegateManager.onCreateViewHolder(parent, viewType);
-    }
+    public abstract VH onCreateViewHolder(ViewGroup parent, int viewType);
 
     /**
      * Called to display the data at the specified position. This method should
@@ -107,17 +80,5 @@ public abstract class AbsDelegateBaseAdapter<VH extends ViewHolder, D extends De
      *                 item at the given position in the data set.
      * @param position The position of the item within the adapter's data set.
      */
-    public void onBindViewHolder(VH holder, int position) {
-        mDelegateManager.onBindViewHolder(holder, position, holder.mItemViewType);
-    }
-
-    @Override
-    public int getViewTypeCount() {
-        return mDelegateManager.getDelegateCount();
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        return mDelegateManager.getItemViewType(position);
-    }
+    public abstract void onBindViewHolder(VH holder, int position);
 }
